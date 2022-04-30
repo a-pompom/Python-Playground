@@ -1,0 +1,24 @@
+2022-04-30 14:03:19,601 - INFO: call FizzBuzz
+2022-04-30 14:03:19,601 - DEBUG: value: -1
+2022-04-30 14:03:19,601 - ERROR: Invalid FizzBuzzValue
+Traceback (most recent call last):
+  File "/Users/aoi/Desktop/playground/Python/python/logging_playground/sample_app/main.py", line 19, in <module>
+    get_fizz_buzz_message(-1)
+  File "/Users/aoi/Desktop/playground/Python/python/logging_playground/sample_app/fizz_buzz.py", line 31, in get_fizz_buzz_message
+    raise InvalidFizzBuzzValue('無効な値が渡されました')
+sample_app.fizz_buzz.InvalidFizzBuzzValue: 無効な値が渡されました
+2022-04-30 14:04:40,029 - INFO: call FizzBuzz
+2022-04-30 14:04:40,029 - DEBUG: value: -1
+2022-04-30 14:04:40,029 - ERROR: Invalid FizzBuzzValue
+Traceback (most recent call last):
+  File "/Users/aoi/Desktop/playground/Python/python/logging_playground/sample_app/main.py", line 25, in <module>
+    get_fizz_buzz_message(-1)
+  File "/Users/aoi/Desktop/playground/Python/python/logging_playground/sample_app/fizz_buzz.py", line 31, in get_fizz_buzz_message
+    raise InvalidFizzBuzzValue('無効な値が渡されました')
+sample_app.fizz_buzz.InvalidFizzBuzzValue: 無効な値が渡されました
+2022-04-30 14:06:18,464 - INFO: call FizzBuzz
+2022-04-30 14:06:18,464 - DEBUG: value: 15
+2022-04-30 14:06:18,464 - DEBUG: return FizzBuzz
+2022-04-30 14:36:20,566 - INFO: call FizzBuzz
+2022-04-30 14:36:20,566 - DEBUG: value: 15
+2022-04-30 14:36:20,566 - DEBUG: return FizzBuzz

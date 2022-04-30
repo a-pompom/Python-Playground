@@ -1,0 +1,2 @@
+DEBUG:root:DEBUGも表示されます
+INFO:root:これはINFOです
