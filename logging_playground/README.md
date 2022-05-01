@@ -10,11 +10,11 @@ Pythonでログを出力する方法・各種モジュールの考え方を身�
 ## 用語整理
 
 * Logging: プログラムが実行されるときに発生するイベントを追跡するための手段
-* LogRecord: Pythonのログ関連のモジュールにおいて、1つのログを表現したオブジェクト Loggerからつくられる
-* LogLevel: ログの重要度 DEBUGやINFO, ERRORなどがある LoggerやHandlerにLogLevelを設定しておくことで、必要なログのみ収集できる
 * Logger: アプリケーションからログを出力するときのインタフェース 実際のログ出力処理はHandlerへ委譲
-* Handler: ファイルやコンソール・メールなど、ログ出力を制御するためのモジュール
+* LogRecord: 1つのログを表現したオブジェクト Loggerからつくられる
+* Handler: ファイルやコンソール・メールなど、ログの出力方法を制御するためのモジュール
 * Formatter: LogRecordのフォーマットを指定するためのモジュール
+* LogLevel: ログの重要度 DEBUGやINFO, ERRORなどがある LoggerやHandlerにLogLevelを設定しておくことで、必要なログのみ収集できる
 
 
 ## ログ出力の基本
@@ -23,7 +23,7 @@ Pythonでログを出力する方法・各種モジュールの考え方を身�
 
 ### とりあえずログを出力したい
 
-まずは何はともあれログを実際に書き出してみる。
+まずは何はともあれログを書き出してみる。
 
 [参考](https://docs.python.org/3/howto/logging.html#a-simple-example)
 
@@ -121,14 +121,22 @@ logging.warning('log name is %s', 'Warning!!')
 * message: `debug()`, `info()`などで指定されるメッセージ
 
 
+#### なぜroot Loggerは非推奨なのか
+
+root Loggerは特別な設定なしにすぐに使うことができるが、あまり推奨されていない。
+これは、root Loggerの設定がログ出力全体に影響を与えることによる。
+
+Loggerは用途に応じて使い分けることが多いので、よほどシンプルなアプリケーションでない限りは、root Loggerを直接利用しない方がよい。
+
+
 ## モジュールを利用したロギング
 
 より柔軟にログを出力できるよう、loggingモジュールが提供しているモジュール群を使ってみる。
-ここでは、Logger, Handlerモジュールでログが出力されるまでの流れを理解する。
+ここでは、Logger, Handlerモジュールを介してログが出力されるまでの流れを理解する。
 
 ### Loggerをつくりたい
 
-ログ出力のインタフェースを提供するLoggerを生成してみる。
+ログ出力のインタフェースを提供するLoggerをつくってみる。
 
 [参考](https://docs.python.org/3/howto/logging.html#loggers)
 
@@ -176,7 +184,7 @@ logger.info('ファイルに出力されます。')
 logger.warning('これもファイルに出力されます。')
 ```
 
-Logger・Handlerが連携してログを出力するときの流れは、公式が提供している図を参照すると分かりやすい。
+Logger・Handlerが連携してログを出力するときの流れは、公式が提供している図を見ると分かりやすい。
 
 ![ログ出力の流れ](https://docs.python.org/3/_images/logging_flow.png)
 
@@ -222,10 +230,12 @@ Loggerのログレベルは、環境やLoggerによって収集したいログ�
 一方、Handlerのログレベルは、重要度などに応じて出力先を切り替えるために設定される。
 例えばERRORレベルのものはメール通知し、INFOレベルはファイルに出力するなど切り替えることができる。これは、実際にはLoggerへログレベルの異なる複数のHandlerを持たせることで実現する。
 
+つまり、Loggerのログレベルは出力の粒度を・Handlerのログレベルは出力対象を制御するために定義されている。
+
 #### addHandler
 
 LoggerがLogRecordを送信するHandlerを追加。
-Handlerは複数追加でき、Loggerが所有するそれぞれのLogRecordへメッセージが送信される。
+Handlerは複数追加でき、Loggerが所有するそれぞれのHandlerへメッセージ(LogRecord)が渡される。
 
 [参考](https://docs.python.org/3/library/logging.html#logging.Logger.addHandler)
 
@@ -234,7 +244,7 @@ Handlerは複数追加でき、Loggerが所有するそれぞれのLogRecordへ�
 
 ### 設定値からLoggerやHandlerをつくりたい
 
-Logger・Handlerなど、ログ出力の設定は記述量が増えやすくなりやすい。また、環境によって記述内容を切り替えたいので、手続き的に設定するのではなく、
+Logger・Handlerなど、ログ出力の設定は記述量が増えやすい。また、環境によって記述内容を切り替えたいので、手続き的に設定するのではなく、
 宣言的に設定を記述できるようにしたい。
 
 このようなとき、公式ではdictConfigと呼ばれる設定方法が推奨されている。
@@ -271,6 +281,7 @@ config_dict = {
 # 内部的には設定値をもとにHandlerクラスのインスタンスをつくったり、Logger.getLogger()を呼び出している
 # つまり、Loggerでログを出力できる環境を設定値をもとに構築している
 logging.config.dictConfig(config_dict)
+# 設定値からLogger名をもとに既にLoggerがつくられているので、ここでは既存のLoggerが得られる
 logger = logging.getLogger('simpleExample')
 logger.debug('debug log')
 logger.info('info log')
@@ -339,7 +350,6 @@ if __name__ == '__main__':
 > 書式: `logging.Formatter.__init__(fmt=None, datefmt=None, style='%')`
 
 
-
 ### 各処理でログを出力するモジュールをつくりたい
 
 まずは実装コードから雰囲気を見ておく。
@@ -396,19 +406,104 @@ def get_fizz_buzz_message(value: int) -> Union[str, int]:
 ```
 
 モジュール側ではLoggerの設定を記述していない。
-しかし、Loggerが階層構造を持つことから、
+しかし、Loggerが階層構造を持つことから、呼び出し元で定義したLoggerへLogRecordが伝播される。
+これにより、モジュールごとにLoggerの設定を書く必要が無くなる。
+
+```bash
+# sample
+2022-04-30 14:06:18,464 - INFO: call FizzBuzz
+2022-04-30 14:06:18,464 - DEBUG: value: 15
+2022-04-30 14:06:18,464 - DEBUG: return FizzBuzz
+```
+
+#### logger.exception
+
+例外が発生したときは、`logger.exception()`でログへ出力すると、メッセージだけでなく例外情報も追記される。
+
+[参考](https://docs.python.org/3/library/logging.html#logging.Logger.exception)
+
+> 書式: `exception(msg, *args, **kwargs)`
+
+```bash
+# エラーメッセージサンプル
+
+2022-04-30 14:04:40,029 - ERROR: Invalid FizzBuzzValue
+Traceback (most recent call last):
+  File "/logging_playground/sample_app/main.py", line 25, in <module>
+    get_fizz_buzz_message(-1)
+  File "/logging_playground/sample_app/fizz_buzz.py", line 31, in get_fizz_buzz_message
+    raise InvalidFizzBuzzValue('無効な値が渡されました')
+sample_app.fizz_buzz.InvalidFizzBuzzValue: 無効な値が渡されました
+```
 
 
 ## ライブラリでロギング
 
+ライブラリとしてアプリケーションをつくり、かつログ出力を組み込みたい場合には、いくつか考慮すべき点があるようだ。
+ただ公式ドキュメントをみるだけではイメージしづらかったので、実際にライブラリっぽいものを書いて試してみる。
+
 ### NullHandlerを設定したい
+
+ログ出力メッセージはデフォルトでは、ログレベルWARNING以上のものが`sys.stderr`へ出力される。
+つまり、ライブラリへログ出力処理を記述しており、さらにアプリケーション側でロギングの設定が無かった場合、ログレベルWARNING以上のメッセージがコンソールへ出力される。
+
+どのメッセージをログとして出力すべきかは利用者が制御できるべきである、という思想から、ライブラリのトップレベルにはNullHandlerというHandlerを設定しておく。
+NullHandlerは文字通り何もしないHandlerで、無条件にログ出力メッセージを切り捨てる。
+
+[参考](https://docs.python.org/3/howto/logging.html#configuring-logging-for-a-library)
+
+```Python
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# NullHandlerを指定しなかった場合、ライブラリを呼び出すと何も設定していなくてもログが出力される
+# ライブラリのログは利用者側で制御できるようになっているべきなので、NullHandlerを指定
+# もし実装中にログを検証したい場合は、親階層のパッケージ名でLoggerをつくるのがよい
+
+# handler = logging.FileHandler('./sample_lib_log.txt')
+handler = logging.NullHandler()
+handler.setLevel(logging.DEBUG)
+logger.addHandler(handler)
+
+
+def decorate_text(text: str) -> str:
+    """
+    入力テキストを装飾
+
+    :param text: 入力値
+    :return: 入力値に装飾を加えたテキスト
+    """
+    logger.warning('TEST WARNING')
+    logger.debug('text: %s', text)
+
+    return f'** {text} **'
+```
+
+このようにライブラリのLoggerのHandlerをNullHandlerとしておくことで、ログレベルWARNING以上のメッセージであっても意図せず出力されることはない。
 
 ### ライブラリのログを取得したい
 
+とはいえ、ライブラリを開発していたり、何かライブラリで問題を見つけたときはログを取得できるようにしたい。
+呼び出し側に設定を加えることで、ライブラリのログを出力できるようにしてみる。
 
+```Python
+import logging
+from sample_library.lib.sample_lib import decorate_text
 
-#### なぜライブラリではHandlerにNullHandlerを設定するのか
+# ライブラリの親階層を指定することで、伝播されたライブラリのログが得られる
+logger = logging.getLogger('sample_library.lib')
+logger.setLevel(logging.DEBUG)
 
-#### なぜrootロガーは非推奨なのか
+handler = logging.FileHandler('./log.txt')
+handler.setLevel(logging.DEBUG)
+logger.addHandler(handler)
 
-#### なぜLogger名には__name__を指定するのか
+# ライブラリの処理を呼び出す
+if __name__ == '__main__':
+    decorate_text('text')
+```
+
+Loggerの名前にライブラリの親階層を指定しておくことで、ライブラリから出力されたログを呼び出し元で定義したHandlerで扱えるようになる。
+今回の例では、ライブラリ側のNullHandlerとは別にFileHandlerを設定しておくことで、ログ出力メッセージが得られた。

@@ -1,7 +1,7 @@
 2022-04-30 14:04:40,029 - ERROR: Invalid FizzBuzzValue
 Traceback (most recent call last):
-  File "/Users/aoi/Desktop/playground/Python/python/logging_playground/sample_app/main.py", line 25, in <module>
+  File "/logging_playground/sample_app/main.py", line 25, in <module>
     get_fizz_buzz_message(-1)
-  File "/Users/aoi/Desktop/playground/Python/python/logging_playground/sample_app/fizz_buzz.py", line 31, in get_fizz_buzz_message
+  File "/logging_playground/sample_app/fizz_buzz.py", line 31, in get_fizz_buzz_message
     raise InvalidFizzBuzzValue('無効な値が渡されました')
 sample_app.fizz_buzz.InvalidFizzBuzzValue: 無効な値が渡されました
